@@ -12,8 +12,8 @@ public class UserController {
     }
 
     public String loginUser(String username, String password, PrintWriter writer) {
-        String role = database.loadUser(username, password);
-        return role;
+        String[] role = database.loadUser(username, password);
+        return role[0];
     }
 
 }

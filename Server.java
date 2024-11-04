@@ -1,6 +1,9 @@
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
+
 import controller.*;
+import data.Database;
 
 public class Server {
     private static final int PORT = 1235;
@@ -40,6 +43,9 @@ public class Server {
                         break;
                     case "DELETE_POST":
                         handleDeletePost(reader, writer, userController);
+                        break;
+                    case "VIEW_PROFILE":
+                        handleViewProfile(reader, writer, userController);
                         break;
                     case "LOGOUT":
                         handleLogout(reader, writer, userController);
@@ -84,6 +90,7 @@ public class Server {
         String password = reader.readLine();
 
         // SEND DATA TO CONTROLLER SO THAT THEY GET PROCESSED AND RETRIEVED FROM DATABASE
+
         String userRole = userController.loginUser(username, password, writer);
         if (userRole != null) {
             System.out.println("LOG: Logged " + username + " in as " + userRole);
@@ -95,9 +102,8 @@ public class Server {
     }
 
     private static void handleCreatePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // GET DATA FROM CLIENT
-
-        // SEND DATA TO A CONTROLLER SO THAT THEY GET SAVED IN THE DATABASE
+        PostController postController = new PostController();
+        postController.createPost(reader, writer);
 
     }
 
@@ -107,17 +113,46 @@ public class Server {
     }
 
     private static void handleUpdatePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // Handle UPDATE_POST command
-        // Add your logic here
+        PostController postController = new PostController();
+
+        // Read Post ID from client
+        String postId = reader.readLine();
+
+        // Check if the Post ID exists
+        if (!postController.postExists(postId)) {
+            writer.println("POST_NOT_FOUND"); // Inform the client that the post does not exist
+            return; // Exit the method
+        }else{
+            writer.println("POST_FOUND");
+        }
+
+        // If it exists, read field choice from client
+        String fieldChoice = reader.readLine();
+
+        // Read new value from client
+        String newValue = reader.readLine();
+
+        // Call the PostController's update method
+        boolean success = postController.updatePost(postId, fieldChoice, newValue);
+
+        if (success) {
+            writer.println("Successfully updated.");  // Send success message to client
+        } else {
+            writer.println("Failed to update the post.");  // Send failure message
+        }
     }
 
     private static void handleDeletePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // Handle DELETE_POST command
-        // Add your logic here
+        PostController postController = new PostController();
+        postController.deletePost(reader, writer);
+    }
+
+    private static void handleViewProfile(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
+
     }
 
     private static void handleLogout(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
         System.out.println("LOG: User logged out.");
     }
-   
+
 }
