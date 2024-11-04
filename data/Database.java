@@ -1,5 +1,6 @@
 package data;
 import java.sql.*;
+import java.util.*;
 
 public class Database {
     private static final String URL = "jdbc:mysql://localhost:3306/realestatedb";
@@ -10,7 +11,7 @@ public class Database {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    public void registerUser(String name, String username, String email, String password, String phoneNo, String address) {
+    public void saveUser(String name, String username, String email, String password, String phoneNo, String address) {
         String query = "INSERT INTO user (roleid, name, address, phoneNumber, username, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
@@ -30,10 +31,10 @@ public class Database {
         }
     }
 
-    public String getUserByUsernameAndPassword(String username, String password) {
+    public String loadUser(String username, String password) {
       String role = null;
       String query = "SELECT roleId FROM user WHERE username = ? AND password = ?";
-      try (Connection conn = DriverManager.getConnection(URL, USER, password);
+      try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
            PreparedStatement pstmt = conn.prepareStatement(query)) {
 
         pstmt.setString(1, username);
@@ -49,4 +50,33 @@ public class Database {
       }
       return role; // Returns the role or null if not found
     }
+
+    public List<String> printPosts() {
+        List<String> posts = new ArrayList<>();
+        String query = "SELECT * FROM Post"; // Adjust the fields as necessary
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                // Collect the necessary details
+                String postInfo = rs.getInt("PostId") + ". " +
+                        rs.getString("Title") + " | " +
+                        rs.getString("Type") + " | " +
+                        rs.getString("ListingType") + " | " +
+                        rs.getString("Address") + " | " +
+                        rs.getString("City") + " | " +
+                        rs.getString("Country") + " | " +
+                        rs.getDouble("Price") + " | " +
+                        rs.getString("Status");
+                posts.add(postInfo); // Add to the list
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading posts: " + e.getMessage());
+        }
+        return posts; // Return the list of posts
+    }
+
+
 }

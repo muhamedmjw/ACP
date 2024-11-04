@@ -2,12 +2,14 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import view.*;
+import controller.*;
 
 public class Client {
-
+    static boolean loggedIn = false;
+    static boolean exit = false;
+    static String userRole = null;
     public static void main(String[] args) {
-        boolean loggedIn = false;
-        String userRole = null;
+
 
         try {
             Socket socket = new Socket("localhost", 1235);
@@ -17,34 +19,42 @@ public class Client {
             DisplayMenu displayMenu = new DisplayMenu();
             ClientMenu clientMenu = new ClientMenu();
             AdminMenu adminMenu = new AdminMenu();
+
             System.out.println("--- WELCOME TO THE REAL ESTATE APPLICATION ---");
 
+            while(!exit){
 
-            while (!loggedIn) {
-                displayMenu.displayMenu();
-                int userChoice = getUserChoice(scanner);
-                if (userChoice == 2) {
-                    userRole = processUserChoice(userChoice, writer, scanner, reader);
-                    loggedIn = userRole != null;
-                } else {
-                    processUserChoice(userChoice, writer, scanner, reader);
+                while (!loggedIn) {
+                    displayMenu.displayMenu();
+                    int userChoice = getUserChoice(scanner);
+
+                    if (userChoice == 1){
+                        processUserChoice(userChoice, writer, scanner, reader);
+                    } else if (userChoice == 2) {
+                        userRole = processUserChoice(userChoice, writer, scanner, reader);
+                        loggedIn = userRole != null;
+                    } else {
+                        exit = true;
+                        break;
+                    }
                 }
-            }
 
+                while (loggedIn) {
+                    if (userRole.equals("ADMIN")) {
+                        adminMenu.adminMenu();
+                    } else if (userRole.equals("CLIENT")) {
+                        clientMenu.clientMenu();
+                    }
 
-            while (loggedIn) {
-                if (userRole.equals("ADMIN")) {
-                    adminMenu.adminMenu();
-                } else if (userRole.equals("CLIENT")) {
-                    clientMenu.clientMenu();
+                    int userChoice = getUserChoice(scanner);
+                    if (userRole.equals("ADMIN")) {
+                        processAdminChoice(userChoice, writer, scanner, reader);
+                    } else if (userRole.equals("CLIENT")) {
+                        processClientChoice(userChoice, writer, scanner, reader);
+                    }
                 }
-                //int userChoice = getUserChoice(scanner);
-                // userRole = processUserChoice(userChoice, writer, scanner, reader);
-                // if (userRole == null) {
-                //     loggedIn = false;
-                // }
-            }
 
+            }
 
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
@@ -64,22 +74,18 @@ public class Client {
         }
     }
 
-
     private static String processUserChoice(int userChoice, PrintWriter writer, Scanner scanner, BufferedReader reader) {
         if (userChoice == 1) {
-            registerUser(writer, scanner, reader);
+            writeRegistrationData(writer, scanner, reader);
             return null;
 
-
         } else if (userChoice == 2) {
-            return loginUser(writer, scanner, reader);
-
+            return writeLoginData(writer, scanner, reader);
 
         } else if (userChoice == 3) {
             writer.println("EXIT");
             System.exit(0);
             return null;
-
 
         } else {
             System.out.println("Invalid choice");
@@ -87,8 +93,48 @@ public class Client {
         }
     }
 
+    private static void processClientChoice(int userChoice, PrintWriter writer, Scanner scanner, BufferedReader reader) {
+        PostController postController = new PostController();
+        switch (userChoice) {
+            case 1:
+                postController.createPost(writer, scanner);
+                break;
+            case 2:
+                writer.println("VIEW_POSTS");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_POSTS")) {
+                        System.out.println(post);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading posts: " + e.getMessage());
+                }
+                break;
+            case 3:
+                writer.println("UPDATE_POST");
+                break;
+            case 4:
+                writer.println("DELETE_POST");
+                break;
+            case 5:
+                writer.println("LOGOUT");
+                System.out.println("You have logged out successfully.");
+                userRole = null;
+                loggedIn = false;
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                break;
+        }
+    }
 
-    private static void registerUser(PrintWriter writer, Scanner scanner, BufferedReader reader) {
+    private static void processAdminChoice(int userChoice, PrintWriter writer, Scanner scanner, BufferedReader reader) {
+
+    }
+
+
+
+    private static void writeRegistrationData(PrintWriter writer, Scanner scanner, BufferedReader reader) {
         String name = validateInput(scanner, "Enter your name:", "[a-zA-Z]+([ ][a-zA-Z]+)*", "Invalid name. Please enter a valid name.");
         String username = uniqueUsernameChecker(scanner);
         String email = validateInput(scanner, "Enter your email:", "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$", "Invalid email. Please enter a valid email.");
@@ -111,8 +157,7 @@ public class Client {
         }
     }
 
-
-    private static String loginUser(PrintWriter writer, Scanner scanner, BufferedReader reader) {
+    private static String writeLoginData(PrintWriter writer, Scanner scanner, BufferedReader reader) {
         System.out.println("Enter your username:");
         String username = scanner.nextLine();
         System.out.println("Enter your password:");
@@ -138,6 +183,7 @@ public class Client {
     }
 
 
+
     private static String validateInput(Scanner scanner, String prompt, String regex, String errorMessage) {
         String input;
         while (true) {
@@ -151,8 +197,6 @@ public class Client {
         }
         return input;
     }
-
-
     private static String uniqueUsernameChecker(Scanner scanner) {
         String username = validateInput(scanner, "Enter your username:", "^[a-zA-Z][a-zA-Z0-9_]{2,14}$", "Invalid username. It should start with a letter, be between 3 and 15 characters long, and contain only letters, digits, or underscores.");
     
@@ -163,8 +207,6 @@ public class Client {
     
         return username;
     }
-
-
     private static boolean usernameExists(String username) {
         try (BufferedReader reader = new BufferedReader(new FileReader("data\\UserData.txt"))) {
             String line;
@@ -179,6 +221,4 @@ public class Client {
         }
         return false;
     }
-
-
 }

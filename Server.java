@@ -64,20 +64,27 @@ public class Server {
     }
 
     private static void handleRegister(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
+        // GET DATA FROM CLIENT
         String name = reader.readLine();
         String username = reader.readLine();
         String email = reader.readLine();
         String password = reader.readLine();
         String phoneNo = reader.readLine();
         String address = reader.readLine();
+
+        // SEND DATA TO CONTROLLER SO THAT THEY GET PROCESSED AND SAVED TO DATABASE
         userController.registerUser(name, username, email, password, phoneNo, address, writer);
         System.out.println("LOG: Registered " + username);
+        writer.println("Registration Successful");
     }
 
     private static void handleLogin(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
+        // GET DATA FROM CLIENT
         String username = reader.readLine();
         String password = reader.readLine();
-        String userRole = userController.handleLogin(username, password, writer);
+
+        // SEND DATA TO CONTROLLER SO THAT THEY GET PROCESSED AND RETRIEVED FROM DATABASE
+        String userRole = userController.loginUser(username, password, writer);
         if (userRole != null) {
             System.out.println("LOG: Logged " + username + " in as " + userRole);
             writer.println(userRole); // send the role back to the client
@@ -88,13 +95,15 @@ public class Server {
     }
 
     private static void handleCreatePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // Handle CREATE_POST command
-        // Add your logic here
+        // GET DATA FROM CLIENT
+
+        // SEND DATA TO A CONTROLLER SO THAT THEY GET SAVED IN THE DATABASE
+
     }
 
     private static void handleViewPosts(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // Handle VIEW_POSTS command
-        // Add your logic here
+        PostController postController = new PostController();
+        postController.viewPosts(writer);
     }
 
     private static void handleUpdatePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
@@ -108,8 +117,7 @@ public class Server {
     }
 
     private static void handleLogout(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-        // Handle LOGOUT command
-        // Add your logic here
+        System.out.println("LOG: User logged out.");
     }
    
 }
