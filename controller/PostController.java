@@ -32,7 +32,15 @@ public class PostController {
     }
 
     public void viewPosts(PrintWriter writer) {
-        List<String> posts = database.printPosts(); // Get the list of posts
+        List<String> posts = database.printPost();// Get the list of posts
+        for (String post : posts) {
+            writer.println(post); // Send each post to the client
+        }
+        writer.println("END_OF_POSTS"); // Indicate the end of the posts
+    }
+
+    public void viewAllPosts(PrintWriter writer) {
+        List<String> posts = database.printAllPosts();// Get the list of posts
         for (String post : posts) {
             writer.println(post); // Send each post to the client
         }

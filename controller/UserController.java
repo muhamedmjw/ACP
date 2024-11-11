@@ -16,4 +16,17 @@ public class UserController {
         return role[0];
     }
 
+    public void viewProfile(PrintWriter writer) {
+        String userId = UserSession.getUserId();
+        List<String> profileInfo = database.printProfileInformation(userId); // Retrieve profile information
+
+        for (String info : profileInfo) {
+            writer.println(info); // Send each piece of profile information to the client
+        }
+        writer.println("END_OF_PROFILE"); // Indicate the end of profile information
+    }
+
+    public void upgradeRole(PrintWriter writer){
+        database.changeClientRole(UserSession.getUserId());
+    }
 }

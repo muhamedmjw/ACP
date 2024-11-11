@@ -57,7 +57,33 @@ public class Database {
         return result; // Returns the role and userId
     }
 
-    public List<String> printPosts() {
+    public List<String> printAllPosts() {
+        List<String> posts = new ArrayList<>();
+        String query = "SELECT * FROM Post"; // Adjust the fields as necessary
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                    String postInfo = rs.getInt("PostId") + ". " +
+                            rs.getString("Title") + " | " +
+                            rs.getString("Type") + " | " +
+                            rs.getString("ListingType") + " | " +
+                            rs.getString("Address") + " | " +
+                            rs.getString("City") + " | " +
+                            rs.getString("Country") + " | $" +
+                            rs.getDouble("Price") + " | " +
+                            rs.getString("Status");
+                    posts.add(postInfo); // Add to the list
+            }
+        } catch (SQLException e) {
+            System.err.println("Error loading posts: " + e.getMessage());
+        }
+        return posts; // Return the list of posts
+    }
+
+    public List<String> printPost() {
         List<String> posts = new ArrayList<>();
         String query = "SELECT * FROM Post"; // Adjust the fields as necessary
 
@@ -67,16 +93,18 @@ public class Database {
 
             while (rs.next()) {
                 // Collect the necessary details
-                String postInfo = rs.getInt("PostId") + ". " +
-                        rs.getString("Title") + " | " +
-                        rs.getString("Type") + " | " +
-                        rs.getString("ListingType") + " | " +
-                        rs.getString("Address") + " | " +
-                        rs.getString("City") + " | " +
-                        rs.getString("Country") + " | $" +
-                        rs.getDouble("Price") + " | " +
-                        rs.getString("Status");
-                posts.add(postInfo); // Add to the list
+                if(rs.getInt("UserID") == Integer.parseInt(UserSession.getUserId())){
+                    String postInfo = rs.getInt("PostId") + ". " +
+                            rs.getString("Title") + " | " +
+                            rs.getString("Type") + " | " +
+                            rs.getString("ListingType") + " | " +
+                            rs.getString("Address") + " | " +
+                            rs.getString("City") + " | " +
+                            rs.getString("Country") + " | $" +
+                            rs.getDouble("Price") + " | " +
+                            rs.getString("Status");
+                    posts.add(postInfo); // Add to the list
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error loading posts: " + e.getMessage());
@@ -84,11 +112,12 @@ public class Database {
         return posts; // Return the list of posts
     }
 
+
+
     public boolean deletePost(int postId) {
         String query = "DELETE FROM Post WHERE PostId = ?";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-
             pstmt.setInt(1, postId);
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0; // Return true if a row was successfully deleted
@@ -219,4 +248,100 @@ public class Database {
             System.out.println("Database error: " + e.getMessage());
         }
     }
+
+    public List<String> printProfileInformation(String userId) {
+        List<String> profileInfo = new ArrayList<>();
+        String query = "SELECT * FROM User WHERE UserID = ?";
+
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, userId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                // Check RoleID and add the corresponding role label
+                int roleId = resultSet.getInt("RoleID");
+                String role = (roleId == 2) ? "Admin" : "Client";
+                profileInfo.add("Role: " + role);
+                profileInfo.add("Name: " + resultSet.getString("Name"));
+                profileInfo.add("Address: " + resultSet.getString("Address"));
+                profileInfo.add("Phone Number: " + resultSet.getString("PhoneNumber"));
+                profileInfo.add("Username: " + resultSet.getString("Username"));
+                profileInfo.add("Email: " + resultSet.getString("Email"));
+            } else {
+                profileInfo.add("User profile not found.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving user profile: " + e.getMessage());
+        }
+
+        return profileInfo; // Return the list of profile information
+    }
+
+    public void changeClientRole(String userId) {
+        String query = "UPDATE User SET RoleID = 2 WHERE UserID = ?";
+
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, userId); // Set the userId parameter
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.println("User with ID " + userId + " has been promoted to Admin.");
+            } else {
+                System.out.println("User with ID " + userId + " not found.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error updating user role: " + e.getMessage());
+        }
+    }
+
+    public List<String> printAllClientProfiles() {
+        List<String> allClientProfiles = new ArrayList<>();
+        String query = "SELECT * FROM User WHERE RoleID = 1"; // Get all clients (RoleID = 1)
+
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                allClientProfiles.add("Role: Client");
+                allClientProfiles.add("ID: " + resultSet.getString("UserID"));
+                allClientProfiles.add("Name: " + resultSet.getString("Name"));
+                allClientProfiles.add("Address: " + resultSet.getString("Address"));
+                allClientProfiles.add("Phone Number: " + resultSet.getString("PhoneNumber"));
+                allClientProfiles.add("Username: " + resultSet.getString("Username"));
+                allClientProfiles.add("Email: " + resultSet.getString("Email"));
+                allClientProfiles.add("");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving client profiles: " + e.getMessage());
+        }
+
+        return allClientProfiles; // Return a single list of client profiles
+    }
+
+    public boolean deleteClient(int userId) {
+        String query = "DELETE FROM User WHERE UserID = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setInt(1, userId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0; // Return true if a row was successfully deleted
+        } catch (SQLException e) {
+            System.err.println("Error deleting client: " + e.getMessage());
+            return false;
+        }
+    }
+
 }
+
+
+

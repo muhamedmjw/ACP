@@ -35,9 +35,14 @@ public class Server {
                     case "CREATE_POST":
                         handleCreatePost(reader, writer, userController);
                         break;
+
+                    case "VIEW_ALL_POSTS":
+                        handleViewAllPosts(reader, writer, userController);
+                        break;
                     case "VIEW_POSTS":
                         handleViewPosts(reader, writer, userController);
                         break;
+
                     case "UPDATE_POST":
                         handleUpdatePost(reader, writer, userController);
                         break;
@@ -49,6 +54,15 @@ public class Server {
                         break;
                     case "LOGOUT":
                         handleLogout(reader, writer, userController);
+                        break;
+                    case "UPGRADE_TO_ADMIN":
+                        handleUpgradeToAdmin(reader, writer, userController);
+                        break;
+                    case "VIEW_ALL_CLIENTS":
+                        handleViewAllClients(writer);
+                        break;
+                    case "DELETE_CLIENT":
+                        handleDeleteClient(reader, writer);
                         break;
                     case "EXIT":
                         continueRunning = false;                       
@@ -112,6 +126,11 @@ public class Server {
         postController.viewPosts(writer);
     }
 
+    private static void handleViewAllPosts(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
+        PostController postController = new PostController();
+        postController.viewAllPosts(writer);
+    }
+
     private static void handleUpdatePost(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
         PostController postController = new PostController();
 
@@ -148,11 +167,24 @@ public class Server {
     }
 
     private static void handleViewProfile(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
-
+        userController.viewProfile(writer);
     }
 
     private static void handleLogout(BufferedReader reader, PrintWriter writer, UserController userController) throws IOException {
         System.out.println("LOG: User logged out.");
     }
 
+    private static void handleUpgradeToAdmin(BufferedReader reader, PrintWriter writer, UserController userController){
+        userController.upgradeRole(writer);
+    }
+
+    private static void handleViewAllClients(PrintWriter writer){
+        AdminController adminController = new AdminController();
+        adminController.viewAllClients(writer);
+    }
+
+    private static void handleDeleteClient(BufferedReader reader, PrintWriter writer){
+        AdminController adminController = new AdminController();
+        adminController.deleteClient(reader, writer);
+    }
 }

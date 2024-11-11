@@ -104,7 +104,7 @@ public class Client {
                 break;
 
             case 2:
-                writer.println("VIEW_POSTS");
+                writer.println("VIEW_ALL_POSTS");
                 try {
                     String post;
                     while (!(post = reader.readLine()).equals("END_OF_POSTS")) {
@@ -141,6 +141,26 @@ public class Client {
                 break;
 
             case 5:
+                writer.println("VIEW_PROFILE");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_PROFILE")) {
+                        System.out.println(post);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading posts: " + e.getMessage());
+                }
+                break;
+
+            case 6:
+                writer.println("LOGOUT");
+                System.out.println("You have logged out successfully.");
+                userRole = null;
+                loggedIn = false;
+                break;
+
+            case 291004:
+                writer.println("UPGRADE_TO_ADMIN");
                 writer.println("LOGOUT");
                 System.out.println("You have logged out successfully.");
                 userRole = null;
@@ -153,8 +173,86 @@ public class Client {
         }
     }
 
-    private static void processAdminChoice(int userChoice, PrintWriter writer, Scanner scanner, BufferedReader reader) {
+    private static void processAdminChoice(int userChoice, PrintWriter writer, Scanner scanner, BufferedReader reader) throws IOException {
+        switch(userChoice) {
+            case 1:
+                writer.println("VIEW_ALL_CLIENTS");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_PROFILES")) {
+                        System.out.println(post); // Print each piece of profile information
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading client profiles: " + e.getMessage());
+                }
+                break;
 
+
+            case 2:
+                writer.println("VIEW_ALL_CLIENTS");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_PROFILES")) {
+                        System.out.println(post); // Print each piece of profile information
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading client profiles: " + e.getMessage());
+                }
+                writer.println("DELETE_CLIENT");
+                System.out.print("Enter the User ID to delete: ");
+                String userId = scanner.nextLine();
+                writer.println(userId);
+
+                // Wait for server confirmation
+                String response2 = reader.readLine();  // Read the response from the server
+                System.out.println(response2);  // Print the response to the console
+                break;
+
+            case 3:
+                writer.println("VIEW_ALL_POSTS");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_POSTS")) {
+                        System.out.println(post);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading posts: " + e.getMessage());
+                }
+                break;
+
+            case 4:
+                writer.println("VIEW_ALL_POSTS");
+                try {
+                    String post;
+                    while (!(post = reader.readLine()).equals("END_OF_POSTS")) {
+                        System.out.println(post);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error reading posts: " + e.getMessage());
+                }
+
+
+                writer.println("DELETE_POST");
+                System.out.print("Enter the Post ID to delete: ");
+                String postId = scanner.nextLine();
+                writer.println(postId);
+
+                // Wait for server confirmation
+                String response = reader.readLine();  // Read the response from the server
+                System.out.println(response);  // Print the response to the console
+                break;
+
+            case 5:
+                writer.println("LOGOUT");
+                System.out.println("You have logged out successfully.");
+                userRole = null;
+                loggedIn = false;
+                break;
+
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                break;
+        }
     }
 
     private static void writeRegistrationData(PrintWriter writer, Scanner scanner, BufferedReader reader) {
@@ -207,8 +305,9 @@ public class Client {
 
     private static void updatePostData(PrintWriter writer, BufferedReader reader, Scanner scanner) throws IOException {
         writer.println("VIEW_POSTS");
+        String post = null;
+
         try {
-            String post;
             while (!(post = reader.readLine()).equals("END_OF_POSTS")) {
                 System.out.println(post);
             }
@@ -218,6 +317,8 @@ public class Client {
 
         writer.println("UPDATE_POST");
 
+
+        System.out.println(post.length());
         // Now, prompt the user to enter the Post ID to update
         System.out.print("Enter ID to update: ");
         String postId = scanner.nextLine();
